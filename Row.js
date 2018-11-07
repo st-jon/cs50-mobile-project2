@@ -19,7 +19,9 @@ const styles = StyleSheet.create({
 });
 
 const Row = props => (
-  <TouchableOpacity style={styles.row}>
+  <TouchableOpacity 
+    style={styles.row}
+    onPress={() => props.onSelectMovie(props)}>
     <Image
       style={{width: 40, height: 40}}
       source={{uri: props.Poster}}

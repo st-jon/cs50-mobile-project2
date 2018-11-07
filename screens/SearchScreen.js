@@ -3,36 +3,89 @@ import { FlatList, TextInput, Text, ScrollView, View, StyleSheet } from "react-n
 
 import Row from '../Row'
 
+const KEY = 'a0a882ab'
+
 export default class SearchScreen extends React.Component {
   state = {
     search: "",
-    data: []
+    data: [],
+    pages: 1,
+    page: 2,
+    refresh: false
   }
-  static navigationOptions = {
-    headerTitle: 'Home',
+  static navigationOptions = ({navigation})  => {
+    return {
+      headerTitle: 'Home',
+    } 
   }
 
 
   getMoviesFromApiAsync = () => {
-    return fetch(`https://www.omdbapi.com/?apikey=a0a882ab&s=${this.state.search}`)
+    return fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${this.state.search}`)
       .then((response) => response.json())
       .then((responseJson) => {
-        this.setState({data: responseJson.Search})
+        this.setState({
+          data: responseJson.Search,
+          pages: Math.ceil(+responseJson.totalResults / 10)
+        })
       })
-      .catch((error) => {
-        console.error(error);
-      })    
+      .catch((err) => {
+        console.log(err);
+      })
   }
+
+  getMoviesWhenScrolling = () => {
+    if (this.state.data.length === 0 || this.state.page === this.state.pages){
+      return
+    }
+    return fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${this.state.search}&page=${this.state.page}`)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.setState((prevstate) => ({
+          data: [...prevstate.data, ...responseJson.Search],
+          page: prevstate.page + 1,
+          refresh: !prevstate.refresh 
+        }))
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
+
+  // getMoviesFromApiAsync = async (search) => {
+  //   const url = `http://www.omdbapi.com/?apikey=a0a882ab&s=${search}`
+  //   try {
+  //       const response = await fetch(url)
+  //       const { Search, totalResults } = await response.json()
+  //       const numPages = Math.ceil(+totalResults / 10)
+  //       for (const i = 2; i <= numPages && i <= 3; i++) {
+  //           const response = await fetch(url + `&page=${i}`)
+  //           const json = await response.json()
+  //           this.setState({data: Search.concat(json.Search)})
+  //       }
+        
+  //   } catch (err) {
+  //       return console.log(err)
+  //   }
+  // }
 
   handleSearch = (search) => {
-    this.setState({search}, this.getMoviesFromApiAsync)
+    this.setState({search}, () => this.getMoviesFromApiAsync())
   }
 
+  handleSelectMovie = (movie) => {
+    this.props.navigation.push('movie', movie)
+  }
+
+  listEmptyComponent = () => {
+    return (
+      <Text style={{textAlign: 'center', marginTop: 30}}>No results</Text>
+    )
+  }
 
   render() {
-    console.log(this.state.data)
     return (
-      <ScrollView style={styles.container}>
+      <View style = {{flex: 1}}>
         <TextInput
           style = {styles.input}
           placeholder = "Search..."
@@ -40,11 +93,15 @@ export default class SearchScreen extends React.Component {
           onChangeText = {this.handleSearch}
         />
         <FlatList 
-          keyExtractor = {(item, index) => item.key}
-          renderItem = {({ item }) => <Row {...item} />}
+          ListEmptyComponent = {this.listEmptyComponent}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem = {({ item }) => <Row {...item} onSelectMovie ={this.handleSelectMovie}/>}
           data = {this.state.data}
+          extraData = {this.state.refresh}
+          onEndReached = {() => this.getMoviesWhenScrolling()}
+          onEndReachedThreshold = {0.4}
         /> 
-      </ScrollView>
+      </View>
     )
   }
 }
@@ -54,10 +111,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   input: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 40,
     borderWidth: 1,
     borderColor: 'black',
     minWidth: 100,
@@ -68,7 +121,4 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 3,
   },
-  selectors: {
-    
-  }
 })
