@@ -19,13 +19,18 @@ export default class SearchScreen extends React.Component {
     } 
   }
 
-
   getMoviesFromApiAsync = () => {
+    if(this.state.search.length < 3) {
+      this.setState({
+        data: []
+      })
+    }
     return fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${this.state.search}`)
       .then((response) => response.json())
       .then((responseJson) => {
+        const {Search} = responseJson
         this.setState({
-          data: responseJson.Search,
+          data: [...Search],
           pages: Math.ceil(+responseJson.totalResults / 10)
         })
       })
@@ -41,8 +46,9 @@ export default class SearchScreen extends React.Component {
     return fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${this.state.search}&page=${this.state.page}`)
       .then((response) => response.json())
       .then((responseJson) => {
+        const newData = this.state.data.concat(responseJson.Search)
         this.setState((prevstate) => ({
-          data: [...prevstate.data, ...responseJson.Search],
+          data: [...newData],
           page: prevstate.page + 1,
           refresh: !prevstate.refresh 
         }))
@@ -51,23 +57,6 @@ export default class SearchScreen extends React.Component {
         console.log(err);
       })
   }
-
-  // getMoviesFromApiAsync = async (search) => {
-  //   const url = `http://www.omdbapi.com/?apikey=a0a882ab&s=${search}`
-  //   try {
-  //       const response = await fetch(url)
-  //       const { Search, totalResults } = await response.json()
-  //       const numPages = Math.ceil(+totalResults / 10)
-  //       for (const i = 2; i <= numPages && i <= 3; i++) {
-  //           const response = await fetch(url + `&page=${i}`)
-  //           const json = await response.json()
-  //           this.setState({data: Search.concat(json.Search)})
-  //       }
-        
-  //   } catch (err) {
-  //       return console.log(err)
-  //   }
-  // }
 
   handleSearch = (search) => {
     this.setState({search}, () => this.getMoviesFromApiAsync())
