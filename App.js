@@ -8,6 +8,7 @@ import {
 
 import MovieScreen from "./screens/MovieScreen"
 import SearchScreen from "./screens/SearchScreen"
+import LoginScreen from "./screens/LoginScreen"
 
 
 const MainStack = createStackNavigator(
@@ -21,10 +22,15 @@ const MainStack = createStackNavigator(
   }
 )
 
+const AppNavigator = createSwitchNavigator({
+  Login: LoginScreen,
+  Main: MainStack
+})
+
 export default class App extends React.Component {
   render() {
     return (
-      <MainStack style={styles.containers}/>
+      <AppNavigator style={styles.containers}/>
     );
   }
 }

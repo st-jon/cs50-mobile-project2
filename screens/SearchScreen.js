@@ -58,6 +58,23 @@ export default class SearchScreen extends React.Component {
       })
   }
 
+  // getMoviesFromApiAsync = async (search) => {
+  //   const url = `http://www.omdbapi.com/?apikey=a0a882ab&s=${search}`
+  //   try {
+  //       const response = await fetch(url)
+  //       const { Search, totalResults } = await response.json()
+  //       const numPages = Math.ceil(+totalResults / 10)
+  //       for (const i = 2; i <= numPages && i <= 3; i++) {
+  //           const response = await fetch(url + `&page=${i}`)
+  //           const json = await response.json()
+  //           this.setState({data: Search.concat(json.Search)})
+  //       }
+        
+  //   } catch (err) {
+  //       return console.log(err)
+  //   }
+  // }
+
   handleSearch = (search) => {
     this.setState({search}, () => this.getMoviesFromApiAsync())
   }
